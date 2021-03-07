@@ -59,12 +59,6 @@
         (v) |= ((__val) << ctz32(__mask)) & (__mask);     \
     })
 
-#define CASE_4(v, step)      \
-    case (v):                \
-    case ((v) + (step)):     \
-    case ((v) + (step) * 2): \
-    case ((v) + (step) * 3)
-
 #define NV2A_DEVICE(obj) OBJECT_CHECK(NV2AState, (obj), "nv2a")
 
 enum FIFOEngine {
@@ -341,6 +335,7 @@ typedef struct PGRAPHState {
 
     unsigned int inline_elements_length;
     uint32_t inline_elements[NV2A_MAX_BATCH_LENGTH];
+    GLuint gl_inline_elements_buffer;
 
     unsigned int inline_buffer_length;
 
