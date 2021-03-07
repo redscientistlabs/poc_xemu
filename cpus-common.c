@@ -114,13 +114,14 @@ CPUState *qemu_get_cpu(int index)
 }
 
 //RTC_Hijack: making cpu_physical_memory_read/write into externs (which is what we need to export them) is a bad idea so I'll just wrap them
-void gpa_readb(uint64_t addr, uint8_t buf)
+uint8_t gpa_readb(uint64_t addr, uint8_t buf)
 {
-    cpu_physical_memory_read((hwaddr)addr, (void*)buf, sizeof(buf));
+    cpu_physical_memory_read((hwaddr)addr, &buf, sizeof(buf));
+    return buf;
 }
 void gpa_writeb(uint64_t addr, uint8_t buf)
 {
-    cpu_physical_memory_write((hwaddr)addr, (void*)buf, sizeof(buf));
+    cpu_physical_memory_write((hwaddr)addr, &buf, sizeof(buf));
 }
 /* current CPU in the current thread. It is only valid inside cpu_exec() */
 __thread CPUState *current_cpu;
