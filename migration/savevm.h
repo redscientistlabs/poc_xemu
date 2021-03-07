@@ -28,9 +28,10 @@
 #define QEMU_VM_CONFIGURATION        0x07
 #define QEMU_VM_COMMAND              0x08
 #define QEMU_VM_SECTION_FOOTER       0x7e
+#include "migration/snapshot.h"
 
 bool qemu_savevm_state_blocked(Error **errp);
-__declspec(dllexport) void qemu_savevm_state_setup(QEMUFile *f);
+void qemu_savevm_state_setup(QEMUFile *f);
 bool qemu_savevm_state_guest_unplug_pending(void);
 int qemu_savevm_state_resume_prepare(MigrationState *s);
 void qemu_savevm_state_header(QEMUFile *f);
@@ -60,9 +61,17 @@ void qemu_savevm_send_colo_enable(QEMUFile *f);
 void qemu_savevm_live_state(QEMUFile *f);
 int qemu_save_device_state(QEMUFile *f);
 
-__declspec(dllexport) int qemu_loadvm_state(QEMUFile *f);
+int qemu_loadvm_state(QEMUFile *f);
 void qemu_loadvm_state_cleanup(void);
 int qemu_loadvm_state_main(QEMUFile *f, MigrationIncomingState *mis);
 int qemu_load_device_state(QEMUFile *f);
 
+__declspec(dllexport) void vanguard_savevm_state(char* filename)
+{
+    
+}
+__declspec(dllexport) int vanguard_loadvm_state(char* filename)
+{
+
+}
 #endif

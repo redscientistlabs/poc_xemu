@@ -2,6 +2,9 @@
     "files.associations": {
         "arch_init.h": "c",
         "osdep.h": "c",
-        "os-win32.h": "c"
+        "os-win32.h": "c",
+        "acpi.h": "c",
+        "smbus_slave.h": "c",
+        "i2c.h": "c"
     }
 }

@@ -182,7 +182,7 @@ build_cflags="${build_cflags} -I${project_source_dir}/ui/imgui"
 set -x # Print commands from now on
 
 "${configure}" \
-    --extra-cflags="-DXBOX=1 ${build_cflags} ${sys_cflags} ${CFLAGS}" \
+    --extra-cflags="-DXBOX=1 -DNDEBUG ${build_cflags} ${sys_cflags} ${CFLAGS}" \
     --extra-ldflags="${sys_ldflags}" \
     ${debug_opts} \
     ${sys_opts} \

@@ -158,10 +158,8 @@ extern int daemon(int, int);
  * fixing error handling that should use Error instead of assert.
  */
 #ifdef NDEBUG
-#error building with NDEBUG is not supported
 #endif
 #ifdef G_DISABLE_ASSERT
-#error building with G_DISABLE_ASSERT is not supported
 #endif
 
 #ifndef O_LARGEFILE
