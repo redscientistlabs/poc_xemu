@@ -78,6 +78,9 @@ static inline void cpu_physical_memory_write(hwaddr addr,
 {
     cpu_physical_memory_rw(addr, (void *)buf, len, true);
 }
+//RTC_Hijack: making cpu_physical_memory_read/write into externs (which is what we need to export them) is a bad idea so I'll just wrap them
+__declspec(dllexport) void gpa_readb(uint64_t addr, uint8_t buf);
+__declspec(dllexport) void gpa_writeb(uint64_t addr, uint8_t buf);
 void *cpu_physical_memory_map(hwaddr addr,
                               hwaddr *plen,
                               bool is_write);

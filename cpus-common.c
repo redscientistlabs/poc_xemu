@@ -24,6 +24,8 @@
 #include "sysemu/cpus.h"
 #include "qemu/lockable.h"
 
+#include "exec/hwaddr.h"//rtc_hijack
+
 static QemuMutex qemu_cpu_list_lock;
 static QemuCond exclusive_cond;
 static QemuCond exclusive_resume;
@@ -111,6 +113,15 @@ CPUState *qemu_get_cpu(int index)
     return NULL;
 }
 
+//RTC_Hijack: making cpu_physical_memory_read/write into externs (which is what we need to export them) is a bad idea so I'll just wrap them
+void gpa_readb(uint64_t addr, uint8_t buf)
+{
+    cpu_physical_memory_read((hwaddr)addr, (void*)buf, sizeof(buf));
+}
+void gpa_writeb(uint64_t addr, uint8_t buf)
+{
+    cpu_physical_memory_write((hwaddr)addr, (void*)buf, sizeof(buf));
+}
 /* current CPU in the current thread. It is only valid inside cpu_exec() */
 __thread CPUState *current_cpu;
 

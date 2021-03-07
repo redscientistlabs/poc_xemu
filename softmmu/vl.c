@@ -120,6 +120,7 @@
 #include "ui/xemu-input.h"
 #include "hw/xbox/eeprom_generation.h"
 
+
 #define MAX_VIRTIO_CONSOLES 1
 
 static const char *data_dir[16];
@@ -1671,7 +1672,10 @@ static bool main_loop_should_exit(void)
 }
 
 void qemu_main_loop(void)
-{
+{    
+    HINSTANCE vanguard = LoadLibraryA("XemuVanguard-Hook.dll"); //RTC_Hijack: include the hook dll as an import
+    typedef void(*CPU_STEP)();
+    CPU_STEP CORE_STEP = GetProcAddress(vanguard, "CPU_STEP");
 #ifdef CONFIG_PROFILER
     int64_t ti;
 #endif
@@ -1679,6 +1683,7 @@ void qemu_main_loop(void)
 #ifdef CONFIG_PROFILER
         ti = profile_getclock();
 #endif
+        CORE_STEP();
         main_loop_wait(false);
 #ifdef CONFIG_PROFILER
         dev_time += profile_getclock() - ti;
@@ -2870,6 +2875,8 @@ static char *strdup_double_commas(const char *input) {
 
 void qemu_init(int argc, char **argv, char **envp)
 {
+    HINSTANCE vanguard = LoadLibraryA("XemuVanguard-Hook.dll"); //RTC_Hijack: include the hook dll as an import
+
     int i;
     int snapshot, linux_boot;
     const char *initrd_filename;
@@ -3134,7 +3141,9 @@ void qemu_init(int argc, char **argv, char **envp)
 
     qemu_init_cpu_list();
     qemu_init_cpu_loop();
-
+    typedef void(*InitVanguard)();
+    InitVanguard StartVanguard = GetProcAddress(vanguard, "InitVanguard");
+    StartVanguard();
 #ifdef XBOX
     qemu_init_main_loop_lock();
     qemu_mutex_lock_main_loop();

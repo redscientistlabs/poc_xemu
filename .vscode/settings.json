@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "arch_init.h": "c",
+        "osdep.h": "c",
+        "os-win32.h": "c"
+    }
+}

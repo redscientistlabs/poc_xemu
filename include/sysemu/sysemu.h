@@ -111,8 +111,8 @@ QemuOpts *qemu_get_machine_opts(void);
 
 bool defaults_enabled(void);
 
-void qemu_init(int argc, char **argv, char **envp);
-void qemu_main_loop(void);
+__declspec(dllexport) void qemu_init(int argc, char **argv, char **envp);
+__declspec(dllexport) void qemu_main_loop(void);
 void qemu_cleanup(void);
 
 extern QemuOptsList qemu_legacy_drive_opts;

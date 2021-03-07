@@ -1,4 +1,7 @@
 /.doctrees
+/.vs
+/build
+/packages
 /config-devices.*
 /config-all-devices.*
 /config-all-disas.*
@@ -167,3 +170,7 @@ trace-ust-all.c
 /dist
 /xemu-version.c
 /xemu.ini
+UpgradeLog.htm
+UpgradeLog3.htm
+packages.config
+UpgradeLog2.htm

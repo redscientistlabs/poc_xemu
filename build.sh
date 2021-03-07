@@ -13,8 +13,6 @@ package_windows() {
     cp i386-softmmu/qemu-system-i386w.exe dist/xemuw.exe
     cp -r "${project_source_dir}/data" dist/
     python3 "${project_source_dir}/get_deps.py" dist/xemu.exe dist
-    strip dist/xemu.exe
-    strip dist/xemuw.exe
 }
 
 package_macos() {
