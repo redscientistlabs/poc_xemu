@@ -113,6 +113,9 @@ bool defaults_enabled(void);
 
 __declspec(dllexport) void qemu_init(int argc, char **argv, char **envp);
 __declspec(dllexport) void qemu_main_loop(void);
+__declspec(dllexport) int vanguard_getMemorySize();
+__declspec(dllexport) void vanguard_savevm_state(char* filename);
+__declspec(dllexport) int vanguard_loadvm_state(char* filename);
 void qemu_cleanup(void);
 
 extern QemuOptsList qemu_legacy_drive_opts;

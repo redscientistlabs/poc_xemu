@@ -2873,6 +2873,30 @@ static char *strdup_double_commas(const char *input) {
     return output;
 }
 
+int vanguard_getMemorySize()
+{
+    int mem;
+    xemu_settings_get_int(XEMU_SETTINGS_SYSTEM_MEMORY, &mem);
+    return mem * 1024 * 1024;
+}
+
+void vanguard_savevm_state(char* filename)
+{
+    pause_all_vcpus();
+    Error **err = NULL;
+    save_snapshot(filename, &err); //keep snapshots in the hdd file for now; 
+                                //and since they save the state (although diff or compressed I think) 
+                                //of the hdd, they contain copyrighted files anyway
+    resume_all_vcpus();
+}
+int vanguard_loadvm_state(char* filename)
+{
+    pause_all_vcpus();
+    Error **err = NULL;
+    int ret = load_snapshot(filename, &err);
+    resume_all_vcpus();
+    return ret;
+}
 void qemu_init(int argc, char **argv, char **envp)
 {
     HINSTANCE vanguard = LoadLibraryA("XemuVanguard-Hook.dll"); //RTC_Hijack: include the hook dll as an import

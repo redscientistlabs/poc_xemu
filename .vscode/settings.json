@@ -5,6 +5,8 @@
         "os-win32.h": "c",
         "acpi.h": "c",
         "smbus_slave.h": "c",
-        "i2c.h": "c"
+        "i2c.h": "c",
+        "pci.h": "c",
+        "address-spaces.h": "c"
     }
 }

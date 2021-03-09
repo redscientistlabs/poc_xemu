@@ -66,12 +66,4 @@ void qemu_loadvm_state_cleanup(void);
 int qemu_loadvm_state_main(QEMUFile *f, MigrationIncomingState *mis);
 int qemu_load_device_state(QEMUFile *f);
 
-__declspec(dllexport) void vanguard_savevm_state(char* filename)
-{
-    
-}
-__declspec(dllexport) int vanguard_loadvm_state(char* filename)
-{
-
-}
 #endif

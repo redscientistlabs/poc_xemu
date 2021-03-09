@@ -2740,6 +2740,7 @@ int save_snapshot(const char *name, Error **errp)
 
     /* save the VM state */
     f = qemu_fopen_bdrv(bs, 1);
+    
     if (!f) {
         error_setg(errp, "Could not open VM state file");
         goto the_end;
