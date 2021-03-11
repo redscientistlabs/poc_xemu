@@ -1132,9 +1132,10 @@ bool qemu_savevm_state_blocked(Error **errp)
 void qemu_savevm_state_header(QEMUFile *f)
 {
     trace_savevm_state_header();
+    printf("setting up savevm state header\n");
     qemu_put_be32(f, QEMU_VM_FILE_MAGIC);
     qemu_put_be32(f, QEMU_VM_FILE_VERSION);
-
+    printf("added magic number and version number\n");
     if (migrate_get_current()->send_configuration) {
         qemu_put_byte(f, QEMU_VM_CONFIGURATION);
         vmstate_save_state(f, &vmstate_configuration, &savevm_state, 0);
@@ -1511,50 +1512,66 @@ void qemu_savevm_state_cleanup(void)
 static int qemu_savevm_state(QEMUFile *f, Error **errp)
 {
     int ret;
+    printf("Entered qemu_savevm_state\n");
     MigrationState *ms = migrate_get_current();
+    printf("migrate_get_current called\n");
     MigrationStatus status;
 
     if (migration_is_running(ms->state)) {
         error_setg(errp, QERR_MIGRATION_ACTIVE);
         return -EINVAL;
     }
+    printf("migration_is_running check succeeded\n");
 
     if (migrate_use_block()) {
         error_setg(errp, "Block migration and snapshots are incompatible");
         return -EINVAL;
     }
+    printf("migrate_use_block check succeeded\n");
 
     migrate_init(ms);
+    printf("migrate_init called\n");
     memset(&ram_counters, 0, sizeof(ram_counters));
     ms->to_dst_file = f;
 
     qemu_mutex_unlock_iothread();
+    printf("qemu_mutex_unlock_iothread called\n");
     qemu_savevm_state_header(f);
+    printf("qemu_savevm_state_header called\n");
     qemu_savevm_state_setup(f);
+    printf("qemu_savevm_state_setup called\n");
     qemu_mutex_lock_iothread();
+    printf("qemu_mutex_lock_iothread called\n");
 
     while (qemu_file_get_error(f) == 0) {
         if (qemu_savevm_state_iterate(f, false) > 0) {
             break;
         }
     }
+    printf("qemu_savevm_state_iterate check succeeded\n");
 
     ret = qemu_file_get_error(f);
     if (ret == 0) {
+        printf("error %d\n", ret);
         qemu_savevm_state_complete_precopy(f, false, false);
         ret = qemu_file_get_error(f);
     }
     qemu_savevm_state_cleanup();
+    printf("qemu_savevm_state_cleanup called\n");
     if (ret != 0) {
+        printf("Error while writing VM state\n");
         error_setg_errno(errp, -ret, "Error while writing VM state");
     }
 
     if (ret != 0) {
         status = MIGRATION_STATUS_FAILED;
+        printf ("savevm failed\n");
     } else {
         status = MIGRATION_STATUS_COMPLETED;
+        printf ("savevm completed\n");
     }
     migrate_set_state(&ms->state, MIGRATION_STATUS_SETUP, status);
+    printf("migrate_set_state called\n");
 
     /* f is outer parameter, it should not stay in global migration state after
      * this function finished */
@@ -2660,6 +2677,7 @@ int qemu_load_device_state(QEMUFile *f)
 
 int save_snapshot(const char *name, Error **errp)
 {
+    printf("Entered save_snapshot with name %s.\n", name);
     BlockDriverState *bs, *bs1;
     QEMUSnapshotInfo sn1, *sn = &sn1, old_sn1, *old_sn = &old_sn1;
     int ret = -1, ret2;
@@ -2669,23 +2687,24 @@ int save_snapshot(const char *name, Error **errp)
     qemu_timeval tv;
     struct tm tm;
     AioContext *aio_context;
-
+    printf("Save_snapshot reached migration block check\n");
     if (migration_is_blocked(errp)) {
         return ret;
     }
+    printf("migration block check successful\n");
 
     if (!replay_can_snapshot()) {
         error_setg(errp, "Record/replay does not allow making snapshot "
                    "right now. Try once more later.");
         return ret;
     }
-
+    printf("replay_can_snapshot check successful\n");
     if (!bdrv_all_can_snapshot(&bs)) {
         error_setg(errp, "Device '%s' is writable but does not support "
                    "snapshots", bdrv_get_device_name(bs));
         return ret;
     }
-
+    printf("all checks successful\n");
     /* Delete old snapshots of the same name */
     if (name) {
         ret = bdrv_all_delete_snapshot(name, &bs1, errp);
@@ -2695,59 +2714,76 @@ int save_snapshot(const char *name, Error **errp)
             return ret;
         }
     }
+    printf("checked if there are snapshots of the same name and deleted them if so\n");
 
     bs = bdrv_all_find_vmstate_bs();
     if (bs == NULL) {
         error_setg(errp, "No block device can accept snapshots");
         return ret;
     }
+    printf("found block device to snapshot\n");
     aio_context = bdrv_get_aio_context(bs);
-
+    printf("ai_context defined\n");
     saved_vm_running = runstate_is_running();
-
+    printf("checked if the vm is running\n");
     ret = global_state_store();
     if (ret) {
         error_setg(errp, "Error saving global state");
         return ret;
     }
+    printf("global state stored\n");
     vm_stop(RUN_STATE_SAVE_VM);
-
+    printf("vm stopped\n");
     bdrv_drain_all_begin();
-
+    printf("bdrv_drain_all_begin called\n");
     aio_context_acquire(aio_context);
+    printf("aio_context_acquire called\n");
 
     memset(sn, 0, sizeof(*sn));
+    printf("memset called\n");
 
     /* fill auxiliary fields */
     qemu_gettimeofday(&tv);
+    printf("qemu_gettimeofday called\n");
     sn->date_sec = tv.tv_sec;
     sn->date_nsec = tv.tv_usec * 1000;
     sn->vm_clock_nsec = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
+    printf("qemu_clock_get_ns called\n");
 
     if (name) {
         ret = bdrv_snapshot_find(bs, old_sn, name);
+        printf("bdrv_snapshot_find called\n");
         if (ret >= 0) {
             pstrcpy(sn->name, sizeof(sn->name), old_sn->name);
             pstrcpy(sn->id_str, sizeof(sn->id_str), old_sn->id_str);
+            printf("pstrcpy called\n");
         } else {
             pstrcpy(sn->name, sizeof(sn->name), name);
         }
     } else {
         /* cast below needed for OpenBSD where tv_sec is still 'long' */
         localtime_r((const time_t *)&tv.tv_sec, &tm);
+            printf("localtime_r called\n");
         strftime(sn->name, sizeof(sn->name), "vm-%Y%m%d%H%M%S", &tm);
+            printf("strftime called\n");
     }
 
     /* save the VM state */
     f = qemu_fopen_bdrv(bs, 1);
+    printf("qemu_fopen_bdrv called\n");
     
     if (!f) {
+        printf("Could not open VM state file\n");
         error_setg(errp, "Could not open VM state file");
         goto the_end;
     }
+    printf("file initialized\n");
     ret = qemu_savevm_state(f, errp);
+    printf("qemu_savevm_state called\n");
     vm_state_size = qemu_ftell(f);
+    printf("qemu_ftell called\n");
     ret2 = qemu_fclose(f);
+    printf("qemu_fclose called\n");
     if (ret < 0) {
         goto the_end;
     }
@@ -2762,9 +2798,11 @@ int save_snapshot(const char *name, Error **errp)
      * unless we release the AioContext before bdrv_all_create_snapshot().
      */
     aio_context_release(aio_context);
+    printf("aio_context_release called\n");
     aio_context = NULL;
 
     ret = bdrv_all_create_snapshot(sn, bs, vm_state_size, &bs);
+    printf("bdrv_all_create_snapshot called\n");
     if (ret < 0) {
         error_setg(errp, "Error while creating snapshot on '%s'",
                    bdrv_get_device_name(bs));
@@ -2776,12 +2814,15 @@ int save_snapshot(const char *name, Error **errp)
  the_end:
     if (aio_context) {
         aio_context_release(aio_context);
+        printf("aio_context_release called\n");
     }
 
     bdrv_drain_all_end();
+    printf("bdrv_drain_all_end called\n");
 
     if (saved_vm_running) {
         vm_start();
+        printf("vm_start called\n");
     }
     return ret;
 }

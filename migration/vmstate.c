@@ -308,9 +308,11 @@ static void vmsd_desc_field_end(const VMStateDescription *vmsd, QJSON *vmdesc,
 bool vmstate_save_needed(const VMStateDescription *vmsd, void *opaque)
 {
     if (vmsd->needed && !vmsd->needed(opaque)) {
+        printf("%s doesn't need to save according to the code\n", vmsd->name);
         /* optional section not needed */
         return false;
     }
+    printf("%s needs to save according to the code\n", vmsd->name);
     return true;
 }
 
@@ -318,21 +320,25 @@ bool vmstate_save_needed(const VMStateDescription *vmsd, void *opaque)
 int vmstate_save_state(QEMUFile *f, const VMStateDescription *vmsd,
                        void *opaque, QJSON *vmdesc_id)
 {
+    printf("entered vmstate_save_state\n");
     return vmstate_save_state_v(f, vmsd, opaque, vmdesc_id, vmsd->version_id);
 }
 
 int vmstate_save_state_v(QEMUFile *f, const VMStateDescription *vmsd,
                          void *opaque, QJSON *vmdesc, int version_id)
 {
+    printf("entered vmstate_save_state_v\n");
     int ret = 0;
     const VMStateField *field = vmsd->fields;
 
     trace_vmstate_save_state_top(vmsd->name);
-
+    printf("trace_vmstate_save_state_top called\n");
     if (vmsd->pre_save) {
         ret = vmsd->pre_save(opaque);
         trace_vmstate_save_state_pre_save_res(vmsd->name, ret);
+    printf("trace_vmstate_save_state_pre_save_res called\n");
         if (ret) {
+            printf("pre-save failed: %s\n", vmsd->name);
             error_report("pre-save failed: %s", vmsd->name);
             return ret;
         }
@@ -340,8 +346,11 @@ int vmstate_save_state_v(QEMUFile *f, const VMStateDescription *vmsd,
 
     if (vmdesc) {
         json_prop_str(vmdesc, "vmsd_name", vmsd->name);
+    printf("json_prop_str called\n");
         json_prop_int(vmdesc, "version", version_id);
+    printf("json_prop_int called\n");
         json_start_array(vmdesc, "fields");
+    printf("json_start_array called\n");
     }
 
     while (field->name) {
@@ -351,11 +360,14 @@ int vmstate_save_state_v(QEMUFile *f, const VMStateDescription *vmsd,
              field->version_id <= version_id)) {
             void *first_elem = opaque + field->offset;
             int i, n_elems = vmstate_n_elems(opaque, field);
+            printf("vmstate_n_elems called\n");
             int size = vmstate_size(opaque, field);
+            printf("vmstate_size called\n");
             int64_t old_offset, written_bytes;
             QJSON *vmdesc_loop = vmdesc;
 
             trace_vmstate_save_state_loop(vmsd->name, field->name, n_elems);
+            printf("trace_vmstate_save_state_loop called\n");
             if (field->flags & VMS_POINTER) {
                 first_elem = *(void **)first_elem;
                 assert(first_elem || !n_elems || !size);
@@ -364,7 +376,9 @@ int vmstate_save_state_v(QEMUFile *f, const VMStateDescription *vmsd,
                 void *curr_elem = first_elem + size * i;
 
                 vmsd_desc_field_start(vmsd, vmdesc_loop, field, i, n_elems);
+            printf("vmsd_desc_field_start called\n");
                 old_offset = qemu_ftell_fast(f);
+            printf("qemu_ftell_fast called\n");
                 if (field->flags & VMS_ARRAY_OF_POINTER) {
                     assert(curr_elem);
                     curr_elem = *(void **)curr_elem;
@@ -377,15 +391,18 @@ int vmstate_save_state_v(QEMUFile *f, const VMStateDescription *vmsd,
                 } else if (field->flags & VMS_STRUCT) {
                     ret = vmstate_save_state(f, field->vmsd, curr_elem,
                                              vmdesc_loop);
+            printf("vmstate_save_state called\n");
                 } else if (field->flags & VMS_VSTRUCT) {
                     ret = vmstate_save_state_v(f, field->vmsd, curr_elem,
                                                vmdesc_loop,
                                                field->struct_version_id);
+            printf("vmstate_save_state_v called\n");
                 } else {
                     ret = field->info->put(f, curr_elem, size, field,
                                      vmdesc_loop);
                 }
                 if (ret) {
+                    printf("Save of field %s/%s failed\n", vmsd->name, field->name);
                     error_report("Save of field %s/%s failed",
                                  vmsd->name, field->name);
                     if (vmsd->post_save) {
@@ -395,16 +412,21 @@ int vmstate_save_state_v(QEMUFile *f, const VMStateDescription *vmsd,
                 }
 
                 written_bytes = qemu_ftell_fast(f) - old_offset;
+            printf("qemu_ftell_fast called\n");
                 vmsd_desc_field_end(vmsd, vmdesc_loop, field, written_bytes, i);
+            printf("vmsd_desc_field_end called\n");
 
                 /* Compressed arrays only care about the first element */
                 if (vmdesc_loop && vmsd_can_compress(field)) {
+            printf("vmsd_can_compress called\n");
                     vmdesc_loop = NULL;
                 }
             }
         } else {
             if (field->flags & VMS_MUST_EXIST) {
                 error_report("Output state validation failed: %s/%s",
+                        vmsd->name, field->name);
+                printf("Output state validation failed: %s/%s\n",
                         vmsd->name, field->name);
                 assert(!(field->flags & VMS_MUST_EXIST));
             }
@@ -417,6 +439,7 @@ int vmstate_save_state_v(QEMUFile *f, const VMStateDescription *vmsd,
     }
 
     ret = vmstate_subsection_save(f, vmsd, opaque, vmdesc);
+            printf("vmstate_subsection_save called\n");
 
     if (vmsd->post_save) {
         int ps_ret = vmsd->post_save(opaque);
@@ -493,39 +516,51 @@ static int vmstate_subsection_load(QEMUFile *f, const VMStateDescription *vmsd,
 static int vmstate_subsection_save(QEMUFile *f, const VMStateDescription *vmsd,
                                    void *opaque, QJSON *vmdesc)
 {
+            printf("entered vm_state_subsectionsave with vmsd %s\n", vmsd->name);
     const VMStateDescription **sub = vmsd->subsections;
     bool vmdesc_has_subsections = false;
     int ret = 0;
 
     trace_vmstate_subsection_save_top(vmsd->name);
+            printf("trace_vmstate_subsection_save_top called\n");
     while (sub && *sub) {
         if (vmstate_save_needed(*sub, opaque)) {
+            printf("vmstate_save_needed called\n");
             const VMStateDescription *vmsdsub = *sub;
             uint8_t len;
-
+            printf("Saving subsection %s I think?\n",vmsdsub->name);
             trace_vmstate_subsection_save_loop(vmsd->name, vmsdsub->name);
+            printf("trace_vmstate_subsection_save_loop called\n");
             if (vmdesc) {
                 /* Only create subsection array when we have any */
                 if (!vmdesc_has_subsections) {
                     json_start_array(vmdesc, "subsections");
+            printf("json_start_array called\n");
                     vmdesc_has_subsections = true;
                 }
 
                 json_start_object(vmdesc, NULL);
+            printf("json_start_object called\n");
             }
 
             qemu_put_byte(f, QEMU_VM_SUBSECTION);
+            printf("qemu_put_byte called\n");
             len = strlen(vmsdsub->name);
             qemu_put_byte(f, len);
+            printf("qemu_put_byte called\n");
             qemu_put_buffer(f, (uint8_t *)vmsdsub->name, len);
+            printf("qemu_put_buffer called\n");
             qemu_put_be32(f, vmsdsub->version_id);
+            printf("qemu_put_be32 called\n");
             ret = vmstate_save_state(f, vmsdsub, opaque, vmdesc);
+            printf("vmstate_save_state called\n");
             if (ret) {
                 return ret;
             }
 
             if (vmdesc) {
                 json_end_object(vmdesc);
+            printf("json_end_object called\n");
             }
         }
         sub++;
@@ -533,6 +568,7 @@ static int vmstate_subsection_save(QEMUFile *f, const VMStateDescription *vmsd,
 
     if (vmdesc_has_subsections) {
         json_end_array(vmdesc);
+            printf("json_end_array called\n");
     }
 
     return ret;
