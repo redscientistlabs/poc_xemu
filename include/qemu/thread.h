@@ -27,9 +27,7 @@ void qemu_mutex_destroy(QemuMutex *mutex);
 int qemu_mutex_trylock_impl(QemuMutex *mutex, const char *file, const int line);
 void qemu_mutex_lock_impl(QemuMutex *mutex, const char *file, const int line);
 void qemu_mutex_unlock_impl(QemuMutex *mutex, const char *file, const int line);
-//typedef cbfunc (__stdcall * Callback)(void);
-//__declspec(dllexport) __stdcall cbfunc vanguard_voidchardelegate(Callback func, char* arg);
-__declspec(dllexport) void vanguard_callbackvoidfunction(void (*ptr)());
+
 typedef void (*QemuMutexLockFunc)(QemuMutex *m, const char *f, int l);
 typedef int (*QemuMutexTrylockFunc)(QemuMutex *m, const char *f, int l);
 typedef void (*QemuRecMutexLockFunc)(QemuRecMutex *m, const char *f, int l);

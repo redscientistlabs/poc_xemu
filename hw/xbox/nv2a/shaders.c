@@ -204,7 +204,7 @@ static QString* generate_geometry_shader(
         }
         return NULL;
     default:
-        //assert(false);
+        assert(false);
         return NULL;
     }
 
