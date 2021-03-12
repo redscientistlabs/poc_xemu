@@ -7,6 +7,8 @@
         "smbus_slave.h": "c",
         "i2c.h": "c",
         "pci.h": "c",
-        "address-spaces.h": "c"
+        "address-spaces.h": "c",
+        "xemu-version.h": "c",
+        "monitor-internal.h": "c"
     }
 }

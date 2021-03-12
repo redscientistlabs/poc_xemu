@@ -33,6 +33,7 @@ int global_state_store(void)
 {
     if (!runstate_store((char *)global_state.runstate,
                         sizeof(global_state.runstate))) {
+        printf("runstate name too big: %s", global_state.runstate);
         error_report("runstate name too big: %s", global_state.runstate);
         trace_migrate_state_too_big();
         return -EINVAL;

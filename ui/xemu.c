@@ -1455,11 +1455,19 @@ static void sleep_ns(int64_t ns)
         Sleep(ns / SCALE_MS);
 #endif
 }
-
+// __stdcall cbfunc vanguard_voidchardelegate(Callback func, char* arg){
+//     func();
+// }
+void vanguard_callbackvoidfunction(void (*ptr)())
+{
+    
+    (*ptr)();
+}
 int main(int argc, char **argv)
 {
     QemuThread thread;
-
+    const char* command;
+    const char* commandarg;
     DPRINTF("Entered main()\n");
     gArgc = argc;
     gArgv = argv;
@@ -1470,6 +1478,10 @@ int main(int argc, char **argv)
     qemu_thread_create(&thread, "qemu_main", call_qemu_main,
                        NULL, QEMU_THREAD_DETACHED);
 
+    HINSTANCE vanguard = LoadLibraryA("XemuVanguard-Hook.dll"); //RTC_Hijack: include the hook dll as an import
+    typedef void(*InitVanguard)();
+    InitVanguard StartVanguard = GetProcAddress(vanguard, "InitVanguard");
+    StartVanguard();
     DPRINTF("Main thread: waiting for display_init_sem\n");
     qemu_sem_wait(&display_init_sem);
 
@@ -1488,7 +1500,20 @@ int main(int argc, char **argv)
 
     DPRINTF("Main thread: initializing app\n");
 
-    while (1) {
+    while (1) 
+    {
+        // command = vanguard_getMainThreadCommand();
+        // commandarg = vanguard_getMainThreadCommandCharArg();
+        // if (strstr(command, "LOADVMSTATE"))
+        // {
+        //     printf("Calling %s(\"%s\")", command, commandarg);
+        //     vanguard_loadvm_state(commandarg);
+        // }
+        // if (strstr(command,"SAVEVMSTATE"))
+        // {
+        //     printf("Calling %s(\"%s\")", command, commandarg);
+        //     vanguard_savevm_state(commandarg);
+        // }
         sdl2_gl_refresh(&sdl2_console[0].dcl);
     }
 

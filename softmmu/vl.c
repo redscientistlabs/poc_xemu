@@ -118,9 +118,11 @@
 #include "ui/xemu-notifications.h"
 #include "ui/xemu-net.h"
 #include "ui/xemu-input.h"
+#include "ui/xemu-monitor.h"
 #include "hw/xbox/eeprom_generation.h"
 
-
+#include "monitor/monitor-internal.h"
+#include "monitor/monitor.h"
 #define MAX_VIRTIO_CONSOLES 1
 
 static const char *data_dir[16];
@@ -2879,23 +2881,72 @@ int vanguard_getMemorySize()
     xemu_settings_get_int(XEMU_SETTINGS_SYSTEM_MEMORY, &mem);
     return mem * 1024 * 1024;
 }
-
-void vanguard_savevm_state(char* filename)
+void vanguard_setMemorySize(int size)
 {
-    pause_all_vcpus();
-    Error **err = NULL;
-    save_snapshot(filename, &err); //keep snapshots in the hdd file for now; 
-                                //and since they save the state (although diff or compressed I think) 
-                                //of the hdd, they contain copyrighted files anyway
-    resume_all_vcpus();
+    int mem = size/1024/1024;
+    xemu_settings_set_int(XEMU_SETTINGS_SYSTEM_MEMORY, &mem);
 }
-int vanguard_loadvm_state(char* filename)
+void vanguard_savevm_state(const char* cmd)
 {
-    pause_all_vcpus();
-    Error **err = NULL;
-    int ret = load_snapshot(filename, &err);
-    resume_all_vcpus();
-    return ret;
+    //qemu_mutex_lock_iothread();
+    qemu_mutex_lock_iothread();
+    xemu_run_monitor_command(cmd);
+    //save_snapshot(filename, &err); //keep snapshots in the hdd file for now; 
+                                  //and since they save the state (although diff or compressed I think) 
+                                 //of the hdd, they contain copyrighted files anyway
+    
+}
+void vanguard_loadvm_state(const char* cmd)
+{
+    //qemu_mutex_lock_iothread();
+    //int ret = load_snapshot(filename, &err);
+    // if (ret > 0)
+    //     vm_start();
+    // else vanguard_loadvm_state(filename);
+    
+    qemu_mutex_lock_iothread();
+    xemu_run_monitor_command(cmd);
+}
+const char* mainthreadcommand;
+const char* mainthreadcommandarg;
+const char* vanguard_getMainThreadCommand()
+{
+    printf("Function to call in mainthread: %s\n", mainthreadcommand);
+    return mainthreadcommand;
+}
+void vanguard_setMainThreadCommand(const char* command)
+{
+    mainthreadcommand = command;
+}
+const char* vanguard_getMainThreadCommandCharArg()
+{
+    printf("Using arg %s\n", mainthreadcommandarg);
+    return mainthreadcommandarg;
+}
+void vanguard_setMainThreadCommandCharArg(const char* arg)
+{
+    mainthreadcommandarg = arg;
+}
+const char* vanguard_getHDDPath()
+{
+    const char *hdd_path;
+    xemu_settings_get_string(XEMU_SETTINGS_SYSTEM_HDD_PATH, &hdd_path);
+    return hdd_path;
+}
+void vanguard_setHDDPath(const char* path)
+{
+    xemu_settings_set_string(XEMU_SETTINGS_SYSTEM_HDD_PATH, &path);
+}
+const char* vanguard_getDVDPath()
+{
+    const char *dvd_path;
+    xemu_settings_get_string(XEMU_SETTINGS_SYSTEM_DVD_PATH, &dvd_path);
+    return dvd_path;
+}
+void vanguard_setDVDPath(const char* path)
+{
+    xemu_settings_set_string(XEMU_SETTINGS_SYSTEM_DVD_PATH, &path);
+    xemu_load_disc(&path);
 }
 void qemu_init(int argc, char **argv, char **envp)
 {
@@ -2938,7 +2989,8 @@ void qemu_init(int argc, char **argv, char **envp)
     BlockdevOptionsQueue bdo_queue = QSIMPLEQ_HEAD_INITIALIZER(bdo_queue);
     QemuPluginList plugin_list = QTAILQ_HEAD_INITIALIZER(plugin_list);
     int mem_prealloc = 0; /* force preallocation of physical target memory */
-
+    mainthreadcommand = "";
+    mainthreadcommandarg = "";
     os_set_line_buffering();
 
     error_init(argv[0]);
@@ -3167,7 +3219,7 @@ void qemu_init(int argc, char **argv, char **envp)
     qemu_init_cpu_loop();
     typedef void(*InitVanguard)();
     InitVanguard StartVanguard = GetProcAddress(vanguard, "InitVanguard");
-    StartVanguard();
+    //StartVanguard();
 #ifdef XBOX
     qemu_init_main_loop_lock();
     qemu_mutex_lock_main_loop();
