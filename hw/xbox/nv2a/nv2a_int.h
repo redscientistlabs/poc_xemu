@@ -90,8 +90,6 @@ typedef struct VertexAttribute {
     uint32_t stride;
 
     bool needs_conversion;
-    uint8_t *converted_buffer;
-    unsigned int converted_elements;
     unsigned int converted_size;
     unsigned int converted_count;
 
@@ -194,6 +192,7 @@ typedef struct VertexKey {
     GLuint gl_type;
     GLboolean gl_normalize;
     size_t stride;
+    hwaddr addr;
 } VertexKey;
 
 typedef struct VertexLruNode {
@@ -325,6 +324,7 @@ typedef struct PGRAPHState {
     float light_local_attenuation[NV2A_MAX_LIGHTS][3];
 
     VertexAttribute vertex_attributes[NV2A_VERTEXSHADER_ATTRIBUTES];
+    uint8_t *converted_buffer;
 
     Lru vertex_cache;
     struct VertexLruNode *vertex_cache_entries;
@@ -340,10 +340,12 @@ typedef struct PGRAPHState {
     unsigned int inline_buffer_length;
 
     unsigned int draw_arrays_length;
+    unsigned int draw_arrays_min_start;
     unsigned int draw_arrays_max_count;
     /* FIXME: Unknown size, possibly endless, 1000 will do for now */
     GLint gl_draw_arrays_start[1000];
     GLsizei gl_draw_arrays_count[1000];
+    bool draw_arrays_prevent_connect;
 
     GLuint gl_memory_buffer;
     GLuint gl_vertex_array;
@@ -489,9 +491,9 @@ void *nv_dma_map(NV2AState *d, hwaddr dma_obj_address, hwaddr *len);
 void pgraph_init(NV2AState *d);
 void pgraph_destroy(PGRAPHState *pg);
 void pgraph_context_switch(NV2AState *d, unsigned int channel_id);
-int pgraph_method(NV2AState *d, unsigned int subchannel,
-                   unsigned int method, uint32_t parameter,
-                   uint32_t *parameters, size_t num_words_available);
+int pgraph_method(NV2AState *d, unsigned int subchannel, unsigned int method,
+                  uint32_t parameter, uint32_t *parameters,
+                  size_t num_words_available, size_t max_lookahead_words);
 void pgraph_gl_sync(NV2AState *d);
 void pgraph_process_pending_downloads(NV2AState *d);
 
