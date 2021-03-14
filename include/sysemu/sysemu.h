@@ -121,6 +121,7 @@ __declspec(dllexport) const char* vanguard_getHDDPath();
 __declspec(dllexport) void vanguard_setHDDPath(const char* path);
 __declspec(dllexport) const char* vanguard_getDVDPath();
 __declspec(dllexport) void vanguard_setDVDPath(const char* path);
+__declspec(dllexport) void vanguard_sendmonitorcmd(const char* cmd);
 const char* vanguard_getMainThreadCommand();
 const char* vanguard_getMainThreadCommandCharArg();
 __declspec(dllexport) void vanguard_setMainThreadCommand(const char* command);

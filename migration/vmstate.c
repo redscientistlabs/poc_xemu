@@ -376,9 +376,9 @@ int vmstate_save_state_v(QEMUFile *f, const VMStateDescription *vmsd,
                 void *curr_elem = first_elem + size * i;
 
                 vmsd_desc_field_start(vmsd, vmdesc_loop, field, i, n_elems);
-            printf("vmsd_desc_field_start called\n");
+            //printf("vmsd_desc_field_start called\n");
                 old_offset = qemu_ftell_fast(f);
-            printf("qemu_ftell_fast called\n");
+            //printf("qemu_ftell_fast called\n");
                 if (field->flags & VMS_ARRAY_OF_POINTER) {
                     assert(curr_elem);
                     curr_elem = *(void **)curr_elem;
@@ -412,9 +412,9 @@ int vmstate_save_state_v(QEMUFile *f, const VMStateDescription *vmsd,
                 }
 
                 written_bytes = qemu_ftell_fast(f) - old_offset;
-            printf("qemu_ftell_fast called\n");
+            //printf("qemu_ftell_fast called\n");
                 vmsd_desc_field_end(vmsd, vmdesc_loop, field, written_bytes, i);
-            printf("vmsd_desc_field_end called\n");
+            //printf("vmsd_desc_field_end called\n");
 
                 /* Compressed arrays only care about the first element */
                 if (vmdesc_loop && vmsd_can_compress(field)) {

@@ -2889,12 +2889,15 @@ void vanguard_setMemorySize(int size)
 void vanguard_savevm_state(const char* cmd)
 {
     //qemu_mutex_lock_iothread();
-    qemu_mutex_lock_iothread();
     xemu_run_monitor_command(cmd);
     //save_snapshot(filename, &err); //keep snapshots in the hdd file for now; 
                                   //and since they save the state (although diff or compressed I think) 
                                  //of the hdd, they contain copyrighted files anyway
     
+}
+void vanguard_sendmonitorcmd(const char* cmd)
+{
+    xemu_run_monitor_command(cmd);
 }
 void vanguard_loadvm_state(const char* cmd)
 {
@@ -2904,7 +2907,6 @@ void vanguard_loadvm_state(const char* cmd)
     //     vm_start();
     // else vanguard_loadvm_state(filename);
     
-    qemu_mutex_lock_iothread();
     xemu_run_monitor_command(cmd);
 }
 const char* mainthreadcommand;
