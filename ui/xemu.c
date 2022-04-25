@@ -1144,6 +1144,9 @@ void sdl2_gl_refresh(DisplayChangeListener *dcl)
      */
     GLuint tex = nv2a_get_framebuffer_surface();
     if (tex == 0) {
+        HINSTANCE vanguard = LoadLibraryA("XemuVanguard-Hook.dll"); //RTC_Hijack: include the hook dll as an import
+        typedef void(*CPU_STEP)();
+        CPU_STEP CORE_STEP = GetProcAddress(vanguard, "CPU_STEP");
         xb_surface_gl_create_texture(scon->surface);
         scon->updates++;
         tex = scon->surface->texture;
@@ -1545,6 +1548,11 @@ int main(int argc, char **argv)
     qemu_sem_init(&display_init_sem, 0);
     qemu_thread_create(&thread, "qemu_main", call_qemu_main,
                        NULL, QEMU_THREAD_DETACHED);
+    
+    HINSTANCE vanguard = LoadLibraryA("XemuVanguard-Hook.dll"); //RTC_Hijack: include the hook dll as an import
+    typedef void(*InitVanguard)();
+    InitVanguard StartVanguard = GetProcAddress(vanguard, "InitVanguard");
+    StartVanguard();
 
     DPRINTF("Main thread: waiting for display_init_sem\n");
     qemu_sem_wait(&display_init_sem);

@@ -104,9 +104,20 @@ void qemu_boot_set(const char *boot_order, Error **errp);
 
 bool defaults_enabled(void);
 
-void qemu_init(int argc, char **argv, char **envp);
-void qemu_main_loop(void);
+__declspec(dllexport) void qemu_init(int argc, char **argv, char **envp);
+__declspec(dllexport) void qemu_main_loop(void);
 void qemu_cleanup(void);
+
+
+__declspec(dllexport) int vanguard_getMemorySize();
+__declspec(dllexport) void vanguard_setMemorySize(int size);
+__declspec(dllexport) void vanguard_savevm_state(const char* filename);
+__declspec(dllexport) void vanguard_loadvm_state(const char* filename);
+__declspec(dllexport) const char* vanguard_getHDDPath();
+__declspec(dllexport) void vanguard_setHDDPath(const char* path);
+__declspec(dllexport) const char* vanguard_getDVDPath();
+__declspec(dllexport) void vanguard_setDVDPath(const char* path);
+__declspec(dllexport) void vanguard_sendmonitorcmd(const char* cmd);
 
 extern QemuOptsList qemu_legacy_drive_opts;
 extern QemuOptsList qemu_common_drive_opts;
