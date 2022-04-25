@@ -2530,7 +2530,7 @@ void vanguard_setHDDPath(const char* path)
 }
 const char* vanguard_getDVDPath()
 {
-    return g_config.files.dvd_path;
+    return g_config.sys.files.dvd_path;
 }
 void vanguard_setDVDPath(const char* path)
 {
