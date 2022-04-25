@@ -2470,15 +2470,14 @@ static char *strdup_double_commas(const char *input) {
 
 int vanguard_getMemorySize()
 {
-    int mem;
-    xemu_settings_get_int(XEMU_SETTINGS_SYSTEM_MEMORY, &mem);
+    int mem = ((int)g_config.sys.mem_limit + 1) * 64;
     return mem * 1024 * 1024;
 }
 
 void vanguard_setMemorySize(int size)
 {
     int mem = size/1024/1024;
-    xemu_settings_set_int(XEMU_SETTINGS_SYSTEM_MEMORY, &mem);
+    //TODO: set sys.mem_limit
 }
 
 void vanguard_savevm_state(const char* cmd)
@@ -2523,24 +2522,19 @@ void vanguard_setMainThreadCommandCharArg(const char* arg)
 }
 const char* vanguard_getHDDPath()
 {
-    const char *hdd_path;
-    xemu_settings_get_string(XEMU_SETTINGS_SYSTEM_HDD_PATH, &hdd_path);
-    return hdd_path;
+    return g_config.sys.files.hdd_path;
 }
 void vanguard_setHDDPath(const char* path)
 {
-    xemu_settings_set_string(XEMU_SETTINGS_SYSTEM_HDD_PATH, &path);
+    g_config.sys.files.hdd_path = path;
 }
 const char* vanguard_getDVDPath()
 {
-    const char *dvd_path;
-    xemu_settings_get_string(XEMU_SETTINGS_SYSTEM_DVD_PATH, &dvd_path);
-    return dvd_path;
+    return g_config.files.dvd_path;
 }
 void vanguard_setDVDPath(const char* path)
 {
-    xemu_settings_set_string(XEMU_SETTINGS_SYSTEM_DVD_PATH, &path);
-    xemu_load_disc(&path);
+    g_config.sys.files.dvd_path = path;
 }
 void vanguard_sendmonitorcmd(const char* cmd)
 {
