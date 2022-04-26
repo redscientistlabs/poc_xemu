@@ -260,7 +260,7 @@ configure="${project_source_dir}/configure"
 set -x # Print commands from now on
 
 "${configure}" \
-    --extra-cflags="-DXBOX=1 ${build_cflags} ${sys_cflags} ${CFLAGS}" \
+    --extra-cflags="-DXBOX=1 -DNDEBUG ${build_cflags} ${sys_cflags} ${CFLAGS}" \
     --extra-ldflags="${sys_ldflags}" \
     --target-list=i386-softmmu \
     ${opts} \

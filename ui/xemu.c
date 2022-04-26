@@ -925,6 +925,8 @@ static void sdl2_display_early_init(DisplayOptions *o)
     SDL_GL_SetSwapInterval(0);
     xemu_hud_init(m_window, m_context);
     blit = create_decal_shader(SHADER_TYPE_BLIT_GAMMA);
+
+    vm_stop(RUN_STATE_PAUSED); // RTCV: pause at launch to allow possible corruptions of the bootup
 }
 
 static void sdl2_display_init(DisplayState *ds, DisplayOptions *o)
@@ -1580,8 +1582,6 @@ int main(int argc, char **argv)
     qemu_mutex_unlock_iothread();
     qemu_mutex_unlock_main_loop();
 
-    vm_stop(RUN_STATE_PAUSED); // RTCV: pause at launch to allow possible corruptions of the bootup
-    
     while (1) {
         sdl2_gl_refresh(&sdl2_console[0].dcl);
     }
