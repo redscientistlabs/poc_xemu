@@ -147,12 +147,7 @@ static int vanguard_virt_to_phys(vaddr vaddr, hwaddr *phys_addr)
     return 0;
 }
 
-#include "qemu/osdep.h"
-#include "hw/hw.h"
-#include "hw/i386/pc.h"
-#include "hw/pci/pci.h"
-#include "sysemu/hw_accel.h"
-#include "cpu.h"
+#include "exec/cpu-all.h"
 
 __declspec(dllexport) uint8_t gva_readb(uint64_t addr) {
     hwaddr paddr = 0;
