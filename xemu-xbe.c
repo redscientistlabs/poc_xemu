@@ -77,6 +77,35 @@ static ssize_t virt_dma_memory_read(vaddr vaddr, void *buf, size_t len)
     return num_bytes_read;
 }
 
+// rtcv
+uint8_t readb(uint64_t addr, uint8_t buf)
+{
+    cpu_physical_memory_read((hwaddr)addr, &buf, sizeof(buf));
+    return buf;
+}
+void writeb(uint64_t addr, uint8_t buf)
+{
+    cpu_physical_memory_write((hwaddr)addr, &buf, sizeof(buf));
+}
+
+
+__declspec(dllexport) uint8_t gva_readb(uint64_t addr) {
+    hwaddr paddr = 0;
+    if (virt_to_phys(addr, &paddr) != 0) {
+        return 0;
+    }
+    return readb(paddr, 0);
+}
+
+__declspec(dllexport) uint8_t gva_writeb(uint64_t addr, uint8_t val) {
+    hwaddr paddr = 0;
+    if (virt_to_phys(addr, &paddr) == 0) {
+        writeb(paddr, val);
+    }
+}
+
+// end rtcv
+
 struct xbe *xemu_get_xbe_info(void)
 {
     vaddr hdr_addr_virt = 0x10000;
