@@ -123,6 +123,45 @@ __declspec(dllexport) void gpa_writeb(uint64_t addr, uint8_t buf)
 {
     cpu_physical_memory_write((hwaddr)addr, &buf, sizeof(buf));
 }
+
+static int vanguard_virt_to_phys(vaddr vaddr, hwaddr *phys_addr)
+{
+    MemTxAttrs attrs;
+    CPUState *cs;
+    hwaddr gpa;
+
+    cs = qemu_get_cpu(0);
+    if (!cs) {
+        return 1; // No cpu
+    }
+
+    cpu_synchronize_state(cs);
+
+    gpa = cpu_get_phys_page_attrs_debug(cs, vaddr & TARGET_PAGE_MASK, &attrs);
+    if (gpa == -1) {
+        return 1; // Unmapped
+    } else {
+        *phys_addr = gpa + (vaddr & ~TARGET_PAGE_MASK);
+    }
+
+    return 0;
+}
+
+__declspec(dllexport) uint8_t gva_readb(uint64_t addr) {
+    hwaddr paddr = 0;
+    if (vanguard_virt_to_phys(addr, &paddr) != 0) {
+        return 0;
+    }
+    return gpa_readb(paddr, 0);
+}
+
+__declspec(dllexport) uint8_t gva_writeb(uint64_t addr, uint8_t val) {
+    hwaddr paddr = 0;
+    if (vanguard_virt_to_phys(addr, &paddr) == 0) {
+        gpa_writeb(paddr, val);
+    }
+}
+
 // end rtc hijack
 
 /* current CPU in the current thread. It is only valid inside cpu_exec() */
