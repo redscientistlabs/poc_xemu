@@ -2483,7 +2483,6 @@ void vanguard_setMemorySize(int size)
 void vanguard_savevm_state(const char* cmd)
 {
     //qemu_mutex_lock_iothread();
-    qemu_mutex_lock_iothread();
     xemu_run_monitor_command(cmd);
     //save_snapshot(filename, &err); //keep snapshots in the hdd file for now; 
                                   //and since they save the state (although diff or compressed I think) 
