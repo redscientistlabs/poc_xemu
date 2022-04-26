@@ -1580,6 +1580,8 @@ int main(int argc, char **argv)
     qemu_mutex_unlock_iothread();
     qemu_mutex_unlock_main_loop();
 
+    vm_stop(RUN_STATE_PAUSED); // RTCV: pause at launch to allow possible corruptions of the bootup
+    
     while (1) {
         sdl2_gl_refresh(&sdl2_console[0].dcl);
     }
