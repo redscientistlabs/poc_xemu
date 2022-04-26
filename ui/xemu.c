@@ -1143,10 +1143,10 @@ void sdl2_gl_refresh(DisplayChangeListener *dcl)
      * to the framebuffer, fall back to the VGA path.
      */
     GLuint tex = nv2a_get_framebuffer_surface();
+    HINSTANCE vanguard = LoadLibraryA("XemuVanguard-Hook.dll"); //RTC_Hijack: include the hook dll as an import
+    typedef void(*CPU_STEP)();
+    CPU_STEP CORE_STEP = GetProcAddress(vanguard, "CPU_STEP");
     if (tex == 0) {
-        HINSTANCE vanguard = LoadLibraryA("XemuVanguard-Hook.dll"); //RTC_Hijack: include the hook dll as an import
-        typedef void(*CPU_STEP)();
-        CPU_STEP CORE_STEP = GetProcAddress(vanguard, "CPU_STEP");
         xb_surface_gl_create_texture(scon->surface);
         scon->updates++;
         tex = scon->surface->texture;

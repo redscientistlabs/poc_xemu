@@ -2471,7 +2471,13 @@ static char *strdup_double_commas(const char *input) {
 int vanguard_getMemorySize()
 {
     int mem = ((int)g_config.sys.mem_limit + 1) * 64;
-    return mem * 1024 * 1024;
+    if (mem == 64) {
+        return 64 * 1024 * 1024;
+    }
+    if (mem == 128) {
+        return 128 * 1024 * 1024;
+    }
+    return 0;
 }
 
 void vanguard_setMemorySize(int size)
